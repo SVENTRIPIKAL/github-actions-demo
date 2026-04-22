@@ -1,0 +1,49 @@
+name: Job Dependencies
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@master
+      
+      - name: Use Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: "20"
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Run tests
+        run: npm test
+        
+      - name: Build project
+        run: |
+          mkdir dist
+          echo "Build artifact created at $(date)" > dist/build.txt
+          
+      - name: Upload build artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: dist-files
+          path: dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@master
+        with:
+          name: dist-files
+          path: dist
+          
+      - name: Deploy project
+        run: |
+          echo "Deploying project..."
+          ls -R dist
+          echo "Deployment successful!"
